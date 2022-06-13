@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <!-- <fieldset>
+        <legend>Demo chat realtime NodeJS</legend>
+        <input type="text" id="username" name="username" placeholder="Enter name">
+        <br>
+        <div id="content"></div>
+    
+        <input id="message" placeholder="Write something..">
+        <br>
+        <button id="sendMessage">SEND</button>
+    </fieldset> -->
+    <h1>App chat sieu nhanh </h1>
+
+    <ul id = "messages"></ul>
+
+    <form id="chat-form">
+        <input type="text" id="chat-mes">
+        <button id="send-chat">Gui</button>
+    </form>
+</body>
+
+<script>
+    const socket = io();
+    // const sendMessageBtn = document.querySelector('#sendMessage');
+    // const chatMes = document.querySelector("#message");
+    // const user = document.querySelector("#username");
+    // sendMessageBtn.addEventListener("click", ()=>{
+    //     const message = chatMes.value
+    //     const username = user.value
+    //     if (username == '' || message == '') {
+    //     alert('Please enter name and message!!');
+    //     } else {
+    //         //Gửi dữ liệu cho socket
+    //         socket.emit('on-chat', {username: username, message: message});
+    //     }
+    // })
+    const ten = prompt('Ten ban la gi?')
+    const chatForm = document.getElementById('chat-form');
+    const chatMes = document.getElementById('chat-mes');
+
+    chatForm.addEventListener('submit',(e)=>{
+        e.preventDefault();
+
+        const message = chatMes.value
+        socket.emit('on-chat', {
+            name: ten,
+            messa:message
+        });
+        chatMes.value = ''
+        // post data
+        messAPI = "http://localhost:3000/message"
+        var formData ={
+            username:ten,
+            mess:message
+        }
+
+        var options = {
+        method: 'POST',
+        body: JSON.stringify(formData),
+        headers: {
+            'Content-Type': 'application/json'
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        };
+        fetch(messAPI,options)
+        .then(function(response){
+            response.json()
+        })
+    })
+
+    const messages = document.querySelector('#messages');
+    socket.on('user-chat', (mess)=>{
+        const chatItem = document.createElement("li");
+        chatItem.textContent = `${mess.name}: ${mess.messa}`;
+        messages.appendChild(chatItem);
+    })
+</script>
+<script>
+    messAPI = "http://localhost:3000/message"
+
+// Functions 
+function getMessage(callback){
+    // const axios = require('axios')
+    // axios.get(messAPI)
+    //     .then(res=>{
+    //     // var username = res.data[0].username;
+    //     // var message = res.data[0].mess;
+    //     // const messages = document.querySelector('#messages');
+    //     // const chatItem = document.createElement("li");
+    //     // chatItem.textContent = `${username}: ${message}`;
+    //     // messages.appendChild(chatItem);
+    //     console.log(type(res))
+    // })
+    fetch(messAPI)
+        .then(function(response){
+            return response.json();
+        })
+        .then(callback);
+}
+
+function renderMess(mess){
+        var listMes = document.querySelector('#messages');
+        var htmls = mess.map(function(mes){
+            return `
+                <li>
+                    ${mes.username}: ${mes.mess}
+                </li>
+            `
+        })
+        listMes.innerHTML = htmls.join('')
+}
+function start(){
+    getMessage(renderMess);
+    // handleSendMes();
+}
+
+start();
+
+
+function sendMes(data,callback){
+    var options = {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+            'Content-Type': 'application/json'
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        };
+        fetch(messAPI,options)
+        .then(function(response){
+            response.json()
+        })
+        .then(callback)
+    }
+function handleSendMes(){
+    var sendBtn = document.querySelector('#send-chat')
+    sendBtn.onclick = function(){
+        var mess = document.querySelector('#chat-mes').value
+        console.log(mess)
+        var username = ten
+        var formData ={
+            username:username,
+            mess:mess
+        }
+        sendMes(formData,function(){
+            getMessage(renderMess)
+        })
+    }
+}
+
+</script>
+
+</html>
